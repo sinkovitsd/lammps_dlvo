@@ -1,0 +1,43 @@
+# Big colloid particles and small LJ particles
+log log.test
+
+units		micro
+atom_style	atomic
+dimension	2
+
+lattice		sq 10 # lattice & latice constant
+region		box block 0 10 0 10 -0.5 0.5
+atom_modify	map array
+create_box	1 box
+create_atoms	1 single 0 0 0
+create_atoms	1 single 2.700 0 0 units box
+
+mass 		1 1.0
+
+group 		fixed  id 1
+group 		mobile id 2
+
+neighbor	5 bin
+
+pair_style	dlvo 5 # cutoff
+pair_coeff	1 1  2e-5 2.7 -0.089 1e-2 0
+                    # hamaker diameter charge_density debyelength minimum
+dielectric 	80
+pair_modify	shift yes
+
+fix		1 mobile move linear 0.0001 0 0 units box
+fix		2 all enforce2d
+#compute 	1 mobile property/atom x fx
+variable 	x equal x[2]
+variable 	f equal fx[2]
+
+#dump		1 all custom 10000 dump.dlvo.lammpstrj id x y z vx vy vz fx fy fz
+#dump_modify 	1 scale no
+
+thermo_style	custom v_x v_f epair
+#thermo_style	custom c_1[1] c_1[2] epair
+thermo		1
+
+timestep	1
+
+run		100000
